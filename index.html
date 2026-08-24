@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trip Manifest — Transport Trip Manager</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">TM</div>
+      <div class="brand-text">
+        <div class="name">Trip Manifest</div>
+        <div class="sub">Fleet Ledger</div>
+      </div>
+    </div>
+
+    <nav class="navlist">
+      <button data-section="dashboard" class="active" onclick="showSection('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </button>
+      <button data-section="addTrip" onclick="showSection('addTrip')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        Add Trip
+      </button>
+      <button data-section="tripData" onclick="showSection('tripData')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg>
+        Trip Data
+      </button>
+      <button data-section="received" onclick="showSection('received')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
+        Received
+      </button>
+      <button data-section="due" onclick="showSection('due')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        Due
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">Data stored locally<br>in this browser only.</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="today mono" id="todayDate"></div>
+    </div>
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="dashboard" class="section active">
+
+      <div class="stat-row">
+        <div class="ticket">
+          <div class="eyebrow">Total Trips</div>
+          <div class="value mono" id="statTrips">0</div>
+        </div>
+        <div class="ticket amber">
+          <div class="eyebrow">Total Freight</div>
+          <div class="value mono" id="statFreight">₹0</div>
+        </div>
+        <div class="ticket teal">
+          <div class="eyebrow">Total Profit</div>
+          <div class="value mono" id="statProfit">₹0</div>
+        </div>
+        <div class="ticket teal">
+          <div class="eyebrow">Received</div>
+          <div class="value mono" id="statReceived">₹0</div>
+        </div>
+        <div class="ticket rust">
+          <div class="eyebrow">Due</div>
+          <div class="value mono" id="statDue">₹0</div>
+        </div>
+        <div class="ticket">
+          <div class="eyebrow">Total Expense</div>
+          <div class="value mono" id="statExpense">₹0</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Monthly Profit Summary</h2>
+        <div class="table-wrap">
+          <table id="monthlyProfitTable">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Trips</th>
+                <th>Total Freight</th>
+                <th>Total Expenses</th>
+                <th>Net Profit</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Freight & Profit Trend by Loading Date</h2>
+        <div class="chart-wrap"><canvas id="freightChart"></canvas></div>
+      </div>
+
+      <div class="panel">
+        <h2>Recent Trips</h2>
+        <div class="table-wrap">
+          <table id="recentTable">
+            <thead><tr>
+              <th>Date</th><th>Vehicle</th><th>Route</th><th>Freight</th><th>Expenses</th><th>Status</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ADD TRIP ============ -->
+    <section id="addTrip" class="section">
+      <div class="panel">
+        <h2 id="formHeading">New Trip Entry</h2>
+        <form id="tripForm">
+          <div class="form-grid">
+
+            <div class="field">
+              <label>Transporter</label>
+              <div class="row">
+                <select id="transporter"></select>
+                <button type="button" class="field-add" onclick="addOption('transporter')" title="Add transporter">+</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Vehicle Number</label>
+              <div class="row">
+                <select id="truckNumber"></select>
+                <button type="button" class="field-add" onclick="addOption('truckNumber')" title="Add vehicle">+</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Loading Date</label>
+              <input type="date" id="loadingDate" required>
+            </div>
+
+            <div class="field">
+              <label>Unloading Date</label>
+              <input type="date" id="unloadingDate" required>
+            </div>
+
+            <div class="field">
+              <label>Loading Point</label>
+              <div class="row">
+                <select id="loadingPoint"></select>
+                <button type="button" class="field-add" onclick="addOption('loadingPoint')" title="Add point">+</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Unloading Point</label>
+              <div class="row">
+                <select id="unloadingPoint"></select>
+                <button type="button" class="field-add" onclick="addOption('unloadingPoint')" title="Add point">+</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Weight Loaded (kg)</label>
+              <input type="number" id="weightLoaded" step="any" placeholder="0.00">
+            </div>
+
+            <div class="field">
+              <label>Weight Delivered (kg)</label>
+              <input type="number" id="weightDelivered" step="any" placeholder="0.00">
+            </div>
+
+            <div class="field">
+              <label>Shortage (kg)</label>
+              <input type="number" id="shortage" readonly>
+            </div>
+
+            <div class="field">
+              <label>Freight Rate (₹ / Ton)</label>
+              <input type="number" id="ratePerTon" step="any" placeholder="0.00">
+            </div>
+
+            <div class="field">
+              <label>Freight Amount (₹)</label>
+              <input type="number" id="freightAmount" readonly>
+            </div>
+
+            <div class="field">
+              <label>Shortage Rate (₹ / Kg)</label>
+              <input type="number" id="shortageRate" step="any" placeholder="0.00">
+            </div>
+
+            <div class="field">
+              <label>Shortage Amount (₹)</label>
+              <input type="number" id="shortageAmount" readonly>
+            </div>
+
+            <div class="field">
+              <label>Diesel Expense (₹)</label>
+              <input type="number" id="diesel" step="any" placeholder="0.00">
+            </div>
+
+            <div class="field">
+              <label>Driver Expense (₹)</label>
+              <input type="number" id="driver" step="any" placeholder="0.00">
+            </div>
+
+            <div class="field">
+              <label>TDS Deduction (₹)</label>
+              <input type="number" id="tds" step="any" placeholder="0.00">
+            </div>
+
+            <div class="field">
+              <label>Office Expense (₹)</label>
+              <input type="number" id="officeExpense" step="any" placeholder="0.00">
+            </div>
+
+          </div>
+
+          <input type="hidden" id="editIndex" value="">
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">Add Trip</button>
+            <button type="button" class="btn btn-ghost" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel Edit</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ TRIP DATA ============ -->
+    <section id="tripData" class="section">
+
+      <!-- TOP PROFIT & EXPENSE METRICS BAR -->
+      <div class="stat-row">
+        <div class="ticket">
+          <div class="eyebrow">Showing Trips</div>
+          <div class="value mono" id="tripDataCount">0</div>
+        </div>
+        <div class="ticket amber">
+          <div class="eyebrow">Total Freight</div>
+          <div class="value mono" id="tripDataFreight">₹0</div>
+        </div>
+        <div class="ticket">
+          <div class="eyebrow">Total Expenses</div>
+          <div class="value mono" id="tripDataExpense">₹0</div>
+        </div>
+        <div class="ticket teal">
+          <div class="eyebrow">Total Profit</div>
+          <div class="value mono" id="tripDataProfit">₹0</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Trip Records</h2>
+
+        <div class="toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="text" id="searchInput" placeholder="Search vehicle, transporter, route..." oninput="renderTable()">
+          </div>
+          
+          <!-- Month Filter -->
+          <select id="monthFilter" onchange="renderTable()">
+            <option value="all">All Months</option>
+          </select>
+
+          <!-- Status Filter -->
+          <select id="statusFilter" onchange="renderTable()">
+            <option value="all">All Status</option>
+            <option value="received">Received</option>
+            <option value="due">Due</option>
+          </select>
+
+          <button class="btn btn-ghost btn-sm" onclick="downloadExcel()">Export Excel</button>
+          <button class="btn btn-danger btn-sm" onclick="resetAllData()">Reset All</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="tripTable">
+            <thead>
+              <tr>
+                <th data-key="loadingDate">Loading Date <span class="sort-arrow"></span></th>
+                <th data-key="unloadingDate">Unloading Date <span class="sort-arrow"></span></th>
+                <th data-key="transporter">Transporter <span class="sort-arrow"></span></th>
+                <th data-key="truck">Vehicle <span class="sort-arrow"></span></th>
+                <th data-key="loading">Loading <span class="sort-arrow"></span></th>
+                <th data-key="unloading">Unloading <span class="sort-arrow"></span></th>
+                <th data-key="loaded">Loaded <span class="sort-arrow"></span></th>
+                <th data-key="delivered">Delivered <span class="sort-arrow"></span></th>
+                <th data-key="shortage">Shortage <span class="sort-arrow"></span></th>
+                <th data-key="freight">Freight <span class="sort-arrow"></span></th>
+                <th data-key="shortageAmount">Shortage ₹ <span class="sort-arrow"></span></th>
+                <th data-key="diesel">Diesel <span class="sort-arrow"></span></th>
+                <th data-key="driver">Driver <span class="sort-arrow"></span></th>
+                <th data-key="tds">TDS <span class="sort-arrow"></span></th>
+                <th data-key="officeExpense">Office Exp. <span class="sort-arrow"></span></th>
+                <th data-key="totalExpense">Total Exp. <span class="sort-arrow"></span></th>
+                <th data-key="profit">Profit <span class="sort-arrow"></span></th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RECEIVED ============ -->
+    <section id="received" class="section">
+      <div class="panel">
+        <h2>Received Payments</h2>
+        <div class="table-wrap">
+          <table id="receivedTable">
+            <thead><tr><th>Vehicle</th><th>Transporter</th><th>Route</th><th>Freight</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DUE ============ -->
+    <section id="due" class="section">
+      <div class="panel">
+        <h2>Due Payments</h2>
+        <div class="table-wrap">
+          <table id="dueTable">
+            <thead><tr><th>Vehicle</th><th>Transporter</th><th>Route</th><th>Freight</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+
+<script src="script.js"></script>
+</body>
+</html>
