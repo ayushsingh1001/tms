@@ -148,7 +148,7 @@ function calculateShortage(){
   let shortage = loaded - delivered;
   if(shortage < 0) shortage = 0;
 
-  let shortageAmount = shortage * rate;
+  let shortageAmount = shortage * rate*1000;
 
   shortageField.value = shortage.toFixed(2);
   shortageAmountField.value = shortageAmount.toFixed(2);
@@ -157,7 +157,7 @@ function calculateShortage(){
 function calculateFreight(){
   let delivered = parseFloat(weightDelivered.value) || 0;
   let rate = parseFloat(ratePerTon.value) || 0;
-  let freight = (delivered / 1000) * rate;
+  let freight = (delivered ) * rate;
   freightAmountField.value = freight.toFixed(2);
 }
 
