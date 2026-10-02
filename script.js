@@ -161,11 +161,18 @@ function calculateFreight(){
   freightAmountField.value = freight.toFixed(2);
 }
 
+function calculateTDS(){
+  let driver = parseFloat(document.getElementById("driver").value) || 0;
+  document.getElementById("tds").value = (driver * 0.02).toFixed(2);
+}
+
 weightLoaded.addEventListener("input", calculateShortage);
 weightDelivered.addEventListener("input", calculateShortage);
 shortageRate.addEventListener("input", calculateShortage);
 weightDelivered.addEventListener("input", calculateFreight);
 ratePerTon.addEventListener("input", calculateFreight);
+
+document.getElementById("driver").addEventListener("input", calculateTDS);
 
 /* ============================================================
    ADD / UPDATE TRIP
