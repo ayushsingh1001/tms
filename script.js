@@ -173,7 +173,6 @@ weightDelivered.addEventListener("input", calculateFreight);
 ratePerTon.addEventListener("input", calculateFreight);
 
 document.getElementById("driver").addEventListener("input", calculateTDS);
-
 /* ============================================================
    ADD / UPDATE TRIP
    ============================================================ */
