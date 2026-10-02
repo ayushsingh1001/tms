@@ -201,7 +201,7 @@ tripForm.addEventListener("submit", function(e){
 
     diesel: parseFloat(document.getElementById("diesel").value) || 0,
     driver: parseFloat(document.getElementById("driver").value) || 0,
-    tds: parseFloat(document.getElementById("tds").value) || 0,
+    tds: (parseFloat(document.getElementById("driver").value) || 0) * 0.02,
     officeExpense: parseFloat(document.getElementById("officeExpense").value) || 0,
 
     payment: false
